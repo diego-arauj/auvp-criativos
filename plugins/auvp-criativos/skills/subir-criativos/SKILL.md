@@ -15,27 +15,38 @@ Google de outro jeito, nem leia as credenciais**: a trava do plugin bloqueia, e 
 
 ## Como rodar os scripts (formato obrigatório)
 
-Use o caminho absoluto da pasta desta skill (aparece como "Base directory" quando a skill abre) e
-rode um comando por vez, sem `cd`, sem `&&`, sem `;`, sem `|`:
+A skill não precisa de nada instalado. Monte o comando assim, com caminhos absolutos e entre aspas,
+um comando por vez, sem `cd`, `&&`, `;`, `|`, `>`, `2>&1` e sem variáveis na frente:
 
+`<python> "<pasta da skill>/scripts/<script>.py" <argumentos>`
+
+- **`<pasta da skill>`** é o "Base directory" que aparece quando a skill abre. Copie exatamente como
+  aparece (no Windows, `C:/Users/...` ou `C:\Users\...`; nunca `/c/Users/...`).
+- **`<python>` no Mac:** `python3`.
+- **`<python>` no Windows:** o Python que vem no plugin, `"<pasta da skill>/../../runtime/windows/python.exe"`.
+  No terminal Bash use assim mesmo; no PowerShell ponha `& ` na frente.
+
+Exemplos:
 ```
-python3 "<pasta da skill>/scripts/meta.py" contas
+python3 "/Users/ana/.claude/plugins/cache/auvp-criativos/auvp-criativos/1.1.0/skills/subir-criativos/scripts/meta.py" contas
+"C:/Users/ana/.claude/plugins/cache/auvp-criativos/auvp-criativos/1.1.0/skills/subir-criativos/../../runtime/windows/python.exe" "C:/Users/ana/.claude/plugins/cache/auvp-criativos/auvp-criativos/1.1.0/skills/subir-criativos/scripts/meta.py" contas
 ```
 
-Sem redirecionar a saída (`>`, `2>&1`) e sem variáveis antes do `python3`. Qualquer outro formato é
-bloqueado pela trava. **Subida com vídeo demora:** rode o `--executar` com o tempo máximo de comando
+Qualquer outro formato é bloqueado pela trava. Nos exemplos abaixo, `<python>` e `<pasta>` seguem
+esta regra. **Subida com vídeo demora:** rode o `--executar` com o tempo máximo de comando
 (10 minutos). Se o tempo acabar, rode o mesmo comando de novo: ele continua de onde parou.
 
 ## 1. Configurar (pedido "configurar")
 
-1. Rode `python3 "<pasta da skill>/scripts/configurar.py"`. Na primeira vez ele prepara o ambiente
-   (1 a 3 minutos) e abre **uma janela pedindo a senha mestra**. Avise a pessoa antes: "vai abrir uma
-   janela, digite lá a senha que você recebeu". **Nunca peça a senha no chat.**
-2. Mostre o resultado: as contas liberadas na Meta e no Google.
-3. Explique em 4 linhas como usar (seção 2) e pare.
+1. Avise a pessoa: "vai abrir uma janela pedindo a senha mestra; digite lá a senha que você recebeu".
+   **Nunca peça a senha no chat.**
+2. Rode `<python> "<pasta>/scripts/configurar.py"`. A janela abre (no Windows, a janela de credencial
+   do Windows; o campo de usuário já vem preenchido, só digite a senha).
+3. Mostre o resultado: as contas liberadas na Meta e no Google.
+4. Explique em 4 linhas como usar (seção 2) e pare.
 
-Senha errada: peça para rodar de novo e conferir a senha com quem a enviou. Se a janela não abrir,
-o script diz o comando para a pessoa rodar no Terminal.
+Senha errada: peça para dizer "configurar" de novo e conferir a senha com quem a enviou. Se a janela
+não abrir, o script diz o comando para a pessoa rodar num terminal.
 
 ## 2. Como usar (pedido "como eu uso?")
 
@@ -52,16 +63,16 @@ Explique assim, curto:
 **Passo 1, destino.** Se a pessoa não disse campanha e conjunto, **pergunte**; nunca escolha sozinho
 e nunca crie campanha ou conjunto. Para ajudar a escolher:
 ```
-python3 "<pasta>/scripts/meta.py" contas
-python3 "<pasta>/scripts/meta.py" campanhas --conta <ID>
-python3 "<pasta>/scripts/meta.py" conjuntos --campanha <ID>
-python3 "<pasta>/scripts/meta.py" anuncios --conjunto <ID>
+<python> "<pasta>/scripts/meta.py" contas
+<python> "<pasta>/scripts/meta.py" campanhas --conta <ID>
+<python> "<pasta>/scripts/meta.py" conjuntos --campanha <ID>
+<python> "<pasta>/scripts/meta.py" anuncios --conjunto <ID>
 ```
 
 **Passo 2, molde.** O molde é um anúncio já existente **do mesmo tipo** (vídeo para vídeo, imagem para
 imagem), de preferência ativo e no mesmo conjunto. Mostre o que será copiado e peça o ok:
 ```
-python3 "<pasta>/scripts/meta.py" molde --anuncio <ID>
+<python> "<pasta>/scripts/meta.py" molde --anuncio <ID>
 ```
 O texto e o título **nunca** são escritos pela skill: saem do molde, letra por letra. Se a pessoa quiser
 outro texto, ela precisa escolher outro molde que já tenha esse texto. Anúncio flexível, dinâmico ou
@@ -80,12 +91,12 @@ feito a partir de post não serve de molde (o script avisa).
 ```
 Rode a conferência (não sobe nada) e mostre o resultado à pessoa:
 ```
-python3 "<pasta>/scripts/meta.py" subir --plano "<arquivo>"
+<python> "<pasta>/scripts/meta.py" subir --plano "<arquivo>"
 ```
 
 **Passo 4, subir** só depois do ok explícito da pessoa:
 ```
-python3 "<pasta>/scripts/meta.py" subir --plano "<arquivo>" --executar
+<python> "<pasta>/scripts/meta.py" subir --plano "<arquivo>" --executar
 ```
 Se cair no meio (internet, limite da Meta), rode **o mesmo comando** de novo: o que já subiu não repete
 (o andamento fica em `<arquivo>.estado.json`).
@@ -95,10 +106,10 @@ Se cair no meio (internet, limite da Meta), rode **o mesmo comando** de novo: o 
 A skill **não sobe no YouTube**. A pessoa sobe no canal como **não listado** e manda os links
 (`youtu.be/...` e, se tiver, `youtube.com/shorts/...`).
 ```
-python3 "<pasta>/scripts/gads.py" contas
-python3 "<pasta>/scripts/gads.py" grupos --conta <ID>
-python3 "<pasta>/scripts/gads.py" anuncios --conta <ID> --grupo <ID>
-python3 "<pasta>/scripts/gads.py" molde --conta <ID> --anuncio <ID>
+<python> "<pasta>/scripts/gads.py" contas
+<python> "<pasta>/scripts/gads.py" grupos --conta <ID>
+<python> "<pasta>/scripts/gads.py" anuncios --conta <ID> --grupo <ID>
+<python> "<pasta>/scripts/gads.py" molde --conta <ID> --anuncio <ID>
 ```
 Plano:
 ```json

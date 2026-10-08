@@ -20,8 +20,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nucleo  # noqa: E402
 
-nucleo.garantir_venv()
-
 import argparse  # noqa: E402
 import copy  # noqa: E402
 import json  # noqa: E402
@@ -29,7 +27,7 @@ import re  # noqa: E402
 import time  # noqa: E402
 from pathlib import Path  # noqa: E402
 
-import requests  # noqa: E402
+import urllib.parse  # noqa: E402
 
 from nucleo import Erro  # noqa: E402
 
@@ -74,10 +72,13 @@ def escrever(caminho: str, dados: dict, arquivos: dict = None, tok: str = None, 
     # Envio de mídia pode repetir sem risco. Criativo e anúncio não: repetir às cegas duplicaria.
     tentativas = 5 if caminho.endswith(("/advideos", "/adimages")) else 1
     for tentativa in range(1, tentativas + 1):
+        if arquivos:
+            bruto, cab = nucleo.multipart(corpo, arquivos)
+        else:
+            bruto, cab = urllib.parse.urlencode(corpo).encode(), {"Content-Type": "application/x-www-form-urlencoded"}
         try:
-            r = requests.post(f"{GRAPH_VIDEO if video else GRAPH}/{caminho}", data=corpo, files=arquivos, timeout=180)
-            resposta = r.json()
-        except (requests.RequestException, ValueError):
+            resposta = nucleo.json_de(nucleo.http("POST", f"{GRAPH_VIDEO if video else GRAPH}/{caminho}", bruto, cab, 300)[1])
+        except Erro:
             if tentativa == tentativas:
                 raise Erro("a Meta não respondeu. Rode o mesmo comando de novo: o que já subiu não repete.")
             time.sleep(tentativa * 3)
@@ -302,7 +303,7 @@ def subir_video(conta: str, arq: Path) -> str:
             f.seek(ini)
             pedaco = f.read(min(fim, ini + PEDACO) - ini)
             r = escrever(f"{conta}/advideos", {"upload_phase": "transfer", "upload_session_id": sessao, "start_offset": ini},
-                         arquivos={"video_file_chunk": (arq.name, pedaco, "application/octet-stream")}, video=True)
+                         arquivos={"video_file_chunk": (arq.name, pedaco)}, video=True)
             ini, fim = int(r["start_offset"]), int(r["end_offset"])
             print(f"    enviado {ini * 100 // max(arq.stat().st_size, 1)}%", file=sys.stderr)
     escrever(f"{conta}/advideos", {"upload_phase": "finish", "upload_session_id": sessao, "title": arq.stem}, video=True)

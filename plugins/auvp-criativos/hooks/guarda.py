@@ -17,6 +17,7 @@ SCRIPTS = os.path.join(RAIZ, "skills", "subir-criativos", "scripts")
 CASA = os.path.expanduser("~")
 DADOS = os.path.join(CASA, ".auvp-criativos")
 SCRIPTS_PERMITIDOS = ("configurar.py", "meta.py", "gads.py")
+PYTHON_PORTATIL = os.path.join(RAIZ, "runtime", "windows", "python.exe")
 
 # Termos que só aparecem para chegar nas chaves, no plugin ou na chave-mestra dos hooks.
 PROIBIDO = (
@@ -65,17 +66,28 @@ def acima_dos_dados(caminho):
     return dentro(DADOS, caminho)
 
 
+def interpretador_aceito(primeiro):
+    if primeiro in ("python3", "python"):
+        return True
+    return caminho_real(primeiro) == caminho_real(PYTHON_PORTATIL)
+
+
 def comando_da_skill(comando):
-    """Aceita só: python3|python "<pasta da skill>/scripts/<script>.py" [argumentos], sem encadear nada."""
+    """Aceita só: <python> "<pasta da skill>/scripts/<script>.py" [argumentos], sem encadear nada.
+
+    <python> é python3/python ou o Python portátil do plugin (Windows); no PowerShell, com & na frente.
+    """
     if any(c in comando for c in "$`\n\r"):
         return False
     try:
-        lex = shlex.shlex(comando, posix=True, punctuation_chars=True)
+        lex = shlex.shlex(comando.replace("\\", "/"), posix=True, punctuation_chars=True)
         lex.whitespace_split = True
         partes = list(lex)
     except ValueError:
         return False
-    if len(partes) < 2 or partes[0] not in ("python3", "python"):
+    if partes[:1] == ["&"]:
+        partes = partes[1:]
+    if len(partes) < 2 or not interpretador_aceito(partes[0]):
         return False
     if any(p and all(ch in "();<>|&" for ch in p) for p in partes):
         return False

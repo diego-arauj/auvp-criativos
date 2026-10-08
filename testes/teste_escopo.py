@@ -44,11 +44,18 @@ def funcao_que_chama(arquivo, alvo):
     return donos
 
 
+def funcao_que_cita(arquivo, trecho):
+    fonte = arquivo.read_text(encoding="utf-8")
+    arvore = ast.parse(fonte)
+    return {f.name for f in ast.walk(arvore) if isinstance(f, ast.FunctionDef)
+            and trecho in (ast.get_source_segment(fonte, f) or "")}
+
+
 print("1. Meta: só existe uma porta de escrita e ela só aceita 4 destinos")
 meta = SCRIPTS / "meta.py"
 texto = meta.read_text(encoding="utf-8")
-checar(funcao_que_chama(meta, "requests.post") == {"escrever"}, "requests.post só aparece dentro de escrever()")
-checar(not any(x in chamadas(meta) for x in ("requests.delete", "requests.put", "requests.patch")), "nenhum DELETE/PUT/PATCH")
+checar(funcao_que_chama(meta, "nucleo.http") == {"escrever"}, "meta.py só faz HTTP direto dentro de escrever()")
+checar('nucleo.http("POST"' in texto and not re.search(r'nucleo\.http\("(DELETE|PUT|PATCH)', texto), "escrita só por POST, nenhum DELETE/PUT/PATCH")
 regra = re.search(r'_ESCRITA_PERMITIDA = re\.compile\(r"(.+?)"\)', texto).group(1)
 checar(regra == r"act_\d{5,25}/(advideos|adimages|adcreatives|ads)", f"destinos permitidos: {regra}")
 checar("_ESCRITA_PERMITIDA.fullmatch(caminho)" in texto, "destino conferido por inteiro (fullmatch)")
@@ -69,22 +76,41 @@ checar('"ACTIVE"' not in sem_filtros, "a palavra ACTIVE só aparece em filtro de
 for proibido in ("daily_budget", "lifetime_budget", "bid_amount", "targeting", "api_update", "api_delete", "copies"):
     checar(proibido not in texto, f"não cita {proibido}")
 
-print("2. Google: só cria asset de vídeo do YouTube e anúncio PAUSADO")
+print("2. Google: só cria vídeo do YouTube como recurso e anúncio PAUSADO")
 google = SCRIPTS / "gads.py"
 gtexto = google.read_text(encoding="utf-8")
-mutates = set(re.findall(r"\.(mutate_\w+)\(", gtexto))
-checar(mutates == {"mutate_assets", "mutate_ad_group_ads"}, f"mutates usados: {sorted(mutates)}")
-checar(funcao_que_chama(google, "mutate_assets") == {"escrever_assets"}, "mutate_assets só dentro de escrever_assets()")
-checar(funcao_que_chama(google, "mutate_ad_group_ads") == {"escrever_anuncio"}, "mutate_ad_group_ads só dentro de escrever_anuncio()")
-checar(not re.search(r"(\bop\w*|operation)\.(update|remove)\b|update_mask|field_mask", gtexto),
-       "nenhuma operação update/remove nem máscara de alteração")
-checar("ENABLED" not in gtexto, "a palavra ENABLED não aparece")
-for proibido in ("CampaignBudget", "campaign_budget", "bidding", "target_cpa", "CampaignService", "AdGroupService"):
+regra_g = re.search(r'_CHAMADA_GOOGLE = re\.compile\(r"(.+?)"\)', nuc).group(1)
+checar(regra_g == r"customers/\d{6,12}/(googleAds:search|assets:mutate|adGroupAds:mutate)", f"chamadas Google permitidas: {regra_g}")
+padrao_g = re.compile(regra_g)
+for c in ("customers/6717534890/campaigns:mutate", "customers/6717534890/campaignBudgets:mutate",
+          "customers/6717534890/adGroups:mutate", "customers/6717534890/adGroupAds:mutate/x",
+          "customers/6717534890/adGroupCriteria:mutate"):
+    checar(not padrao_g.fullmatch(c), f"recusa chamada {c}")
+checar("_CHAMADA_GOOGLE.fullmatch(caminho)" in nuc, "chamada Google conferida por inteiro (fullmatch)")
+checar(funcao_que_cita(google, "assets:mutate") == {"escrever_assets"}, "assets:mutate só dentro de escrever_assets()")
+checar(funcao_que_cita(google, "adGroupAds:mutate") == {"escrever_anuncio"}, "adGroupAds:mutate só dentro de escrever_anuncio()")
+checar('"update"' not in gtexto and '"remove"' not in gtexto, "nenhuma operação update/remove")
+checar("ENABLED" not in gtexto.replace("campaign.status = 'ENABLED'", ""), "a palavra ENABLED só aparece em filtro de leitura")
+checar('criar["status"] != "PAUSED"' in gtexto, "anúncio Google só nasce PAUSED (checado na porta de escrita)")
+for proibido in ("campaignBudget", "biddingStrategy", "targetCpa", "campaigns:mutate", "adGroups:mutate"):
     checar(proibido not in gtexto, f"não cita {proibido}")
 
 print("2b. Nenhum script esconde biblioteca e todos compilam no Python 3.9")
 nomes = {a.stem for a in SCRIPTS.glob("*.py")}
-checar(not nomes & {"google", "requests", "cryptography", "json", "re", "copy"}, f"nomes dos scripts: {sorted(nomes)}")
+checar(not nomes & {"google", "requests", "json", "re", "copy", "ssl", "http", "hashlib"}, f"nomes dos scripts: {sorted(nomes)}")
+for arq in SCRIPTS.glob("*.py"):
+    importa = set(re.findall(r"^(?:import|from) (\w+)", arq.read_text(encoding="utf-8"), re.M))
+    externas = importa - {"__future__", "argparse", "base64", "copy", "hashlib", "hmac", "json", "os", "re", "secrets",
+                          "ssl", "subprocess", "sys", "time", "urllib", "uuid", "pathlib", "shutil", "getpass",
+                          "tkinter", "nucleo"}
+    checar(not externas, f"{arq.name} só usa a biblioteca padrão {sorted(externas) if externas else ''}")
+checar(not (SCRIPTS / "requirements.txt").exists(), "não há requirements.txt: nada para instalar")
+win = PLUGIN / "runtime" / "windows"
+checar((win / "python.exe").exists() and (win / "python314.zip").exists(), "Python portátil do Windows está no plugin")
+import zipfile
+modulos = set(n.split("/")[0].replace(".pyc", "") for n in zipfile.ZipFile(win / "python314.zip").namelist())
+checar({"urllib", "json", "hashlib", "hmac", "ssl", "argparse", "shlex", "secrets", "uuid", "base64"} <= modulos,
+       "o Python portátil traz os módulos que a skill usa")
 if Path("/usr/bin/python3").exists():
     for arq in SCRIPTS.glob("*.py"):
         r = subprocess.run(["/usr/bin/python3", "-c", f"import ast;ast.parse(open({str(arq)!r}).read())"], capture_output=True)
@@ -147,6 +173,11 @@ casos = [
     ("Write", {"file_path": str(Path.home() / ".auvp-criativos" / "contas-permitidas.json"), "content": "{}"}, False),
     ("WebFetch", {"url": "file:///Users/x/.auvp-criativos/credenciais.json"}, False),
     ("Skill", {"skill": "auvp-criativos:subir-criativos"}, True),
+    ("Bash", {"command": f'"{PLUGIN}/runtime/windows/python.exe" "{scripts}/meta.py" contas'}, True),
+    ("PowerShell", {"command": f'& "{PLUGIN}/runtime/windows/python.exe" "{scripts}/gads.py" contas'}, True),
+    ("PowerShell", {"command": f'& "{PLUGIN}/runtime/windows/python.exe" -c "print(1)"'}, False),
+    ("PowerShell", {"command": f'& "{PLUGIN}/runtime/windows/python.exe" "{scripts}/meta.py" contas; Get-Content x'}, False),
+    ("PowerShell", {"command": "Get-Content $env:USERPROFILE/.auvp-criativos/credenciais.json"}, False),
 ]
 for ferramenta, entrada, deve_passar in casos:
     r = subprocess.run([sys.executable, str(GUARDA)], input=json.dumps(
@@ -165,6 +196,16 @@ for entrada, deve_passar, nome in (
 ):
     r = subprocess.run([sys.executable, str(GUARDA)], input=entrada, capture_output=True, text=True)
     checar((r.returncode == 0) == deve_passar, nome)
+
+print("6. Lançador da trava (o mesmo que o Claude Code chama)")
+for entrada, deve_passar, nome in (
+    (json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": "ls"}}), True, "comando comum passa"),
+    (json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": "cat ~/.auvp-criativos/x"}}), False, "credencial bloqueia"),
+):
+    r = subprocess.run(["sh", str(PLUGIN / "hooks" / "guarda.sh")], input=entrada, capture_output=True, text=True)
+    checar((r.returncode == 0) == deve_passar and r.returncode in (0, 2), f"{nome} (código {r.returncode})")
+hooks = json.loads((PLUGIN / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+checar(all("guarda.sh" in h["hooks"][0]["command"] for ev in hooks["hooks"].values() for h in ev), "hooks.json chama o lançador")
 
 print(f"\n{'TUDO CERTO' if not falhas else str(len(falhas)) + ' FALHA(S)'}")
 sys.exit(1 if falhas else 0)

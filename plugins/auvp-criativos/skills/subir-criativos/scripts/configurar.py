@@ -12,8 +12,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nucleo  # noqa: E402
 
-nucleo.garantir_venv(instalar=True)
-
 import json  # noqa: E402
 
 from nucleo import Erro  # noqa: E402
@@ -78,12 +76,11 @@ def cerca_google() -> dict:
     consulta = ("SELECT customer_client.id, customer_client.descriptive_name, customer_client.manager, "
                 "customer_client.status FROM customer_client")
     for mcc in nucleo.GOOGLE_MCCS_PERMITIDAS:
-        servico = nucleo.cliente_google(mcc).get_service("GoogleAdsService")
-        for linha in servico.search(customer_id=mcc, query=consulta):
-            cc = linha.customer_client
-            if cc.manager or cc.status.name != "ENABLED":
+        for linha in nucleo.google_consultar(mcc, mcc, consulta):
+            cc = linha.get("customerClient", {})
+            if cc.get("manager") or cc.get("status") != "ENABLED":
                 continue
-            contas.append({"id": str(cc.id), "nome": cc.descriptive_name, "mcc": mcc})
+            contas.append({"id": str(cc["id"]), "nome": cc.get("descriptiveName", ""), "mcc": mcc})
     return {"contas": contas}
 
 

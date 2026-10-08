@@ -7,18 +7,28 @@ orçamento, público nem status, e só enxerga as contas da AUVP.
 
 ## O que você precisa
 
-- **Claude Code** instalado (app desktop, aba Code, ou terminal).
-- **Python 3.9 ou mais novo.** No Mac, abra o Terminal e rode `python3 --version`. Se pedir para
-  instalar as "ferramentas de linha de comando", aceite.
-- **Acesso a este repositório no GitHub** (peça ao Diego) e o GitHub configurado no computador. O jeito
-  mais simples: instale o GitHub CLI e rode `gh auth login` e depois `gh auth setup-git`.
+- **Windows 10 ou 11** (ou Mac). **Não precisa instalar Python:** a skill traz o dela.
+- **Claude Code** instalado (app desktop ou terminal).
+- **Git for Windows** (no Mac já vem). Ele baixa a skill do GitHub e dá ao Claude Code o terminal
+  que a trava de segurança usa.
+- **Convite para este repositório no GitHub**, aceito na sua conta (peça ao Diego).
 - **A senha mestra**, que o Diego envia em separado.
-- Testado no **Mac**. No Windows deve funcionar (a senha abre numa janela do Windows), mas ainda não
-  foi testado.
 
 ## 1. Instalar (uma vez)
 
-No Claude Code, digite estes dois comandos, um de cada vez:
+**Passo 1, Git (só no Windows).** Baixe em https://git-scm.com/download/win e instale com as opções
+que já vêm marcadas (é só ir clicando em Next). Depois, **feche e abra o Claude Code**.
+
+**Passo 2, login no GitHub.** Abra o programa **Git Bash** (veio com o Git) e rode:
+
+```
+git ls-remote https://github.com/DONO/auvp-criativos
+```
+
+Vai abrir o navegador para você entrar na sua conta do GitHub. Entre e autorize. Se aparecer uma
+lista de códigos no Git Bash, deu certo; pode fechar.
+
+**Passo 3, a skill.** No Claude Code, digite estes dois comandos, um de cada vez:
 
 ```
 /plugin marketplace add DONO/auvp-criativos
@@ -32,9 +42,9 @@ a sessão do Claude Code.
 
 Diga ao Claude: **configurar**.
 
-1. Na primeira vez ele prepara o ambiente (1 a 3 minutos).
-2. Abre uma **janela pedindo a senha mestra**. Digite a senha nessa janela, **nunca no chat**.
-3. Ele mostra as contas liberadas na Meta e no Google. Pronto.
+1. Abre uma **janela pedindo a senha mestra** (no Windows, a janela de credencial do Windows: o
+   usuário já vem preenchido, digite só a senha). Digite nessa janela, **nunca no chat**.
+2. Ele mostra as contas liberadas na Meta e no Google. Pronto.
 
 Se a senha estiver errada, ele avisa: diga "configurar" de novo.
 
@@ -88,6 +98,9 @@ AUVP. Se você pedir, o Claude vai dizer que não faz. Isso não é erro.
 | Mensagem | O que fazer |
 |---|---|
 | "a skill ainda não foi configurada" | diga "configurar" |
+| "não achei o Python para rodar a trava" | Windows: instale o Git for Windows (passo 1) e reabra o Claude Code. Mac: rode `xcode-select --install` no Terminal |
+| o `/plugin marketplace add` não acha o repositório | refaça o passo 2 (login no GitHub) e confira se aceitou o convite |
+| "falha de certificado na conexão" | a rede da empresa inspeciona HTTPS; peça ao TI para liberar graph.facebook.com e googleads.googleapis.com |
 | "senha mestra incorreta" | confira a senha com o Diego e diga "configurar" de novo |
 | "a Meta pediu uma pausa" | espere 5 minutos e peça para rodar de novo; o que já subiu não repete |
 | "esse anúncio não serve de molde" | escolha um anúncio simples de vídeo ou imagem no mesmo conjunto |
