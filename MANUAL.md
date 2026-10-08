@@ -38,7 +38,7 @@ mesma pasta e rode, um de cada vez:
 
 Depois feche e abra a sessão do Claude Code.
 
-*Quem tem Git pode instalar direto do GitHub:* `/plugin marketplace add DONO/auvp-criativos`.
+*Quem tem Git pode instalar direto do GitHub:* `/plugin marketplace add diego-arauj/auvp-criativos`.
 
 ## 2. Configurar (uma vez por computador)
 
