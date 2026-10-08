@@ -202,10 +202,13 @@ for entrada, deve_passar, nome in (
     (json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": "ls"}}), True, "comando comum passa"),
     (json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": "cat ~/.auvp-criativos/x"}}), False, "credencial bloqueia"),
 ):
-    r = subprocess.run(["sh", str(PLUGIN / "hooks" / "guarda.sh")], input=entrada, capture_output=True, text=True)
+    cmd = json.loads((PLUGIN / "hooks" / "hooks.json").read_text(encoding="utf-8"))["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+    r = subprocess.run(["sh", "-c", cmd.replace("${CLAUDE_PLUGIN_ROOT}", str(PLUGIN))], input=entrada, capture_output=True, text=True)
     checar((r.returncode == 0) == deve_passar and r.returncode in (0, 2), f"{nome} (código {r.returncode})")
+lanc = (PLUGIN / "hooks" / "guarda.cmd").read_text(encoding="utf-8")
+checar("\r" not in lanc and "exit /b 2" in lanc and 'exit 2' in lanc, "lançador serve ao shell e ao Windows e bloqueia nos dois sem Python")
 hooks = json.loads((PLUGIN / "hooks" / "hooks.json").read_text(encoding="utf-8"))
-checar(all("guarda.sh" in h["hooks"][0]["command"] for ev in hooks["hooks"].values() for h in ev), "hooks.json chama o lançador")
+checar(all("guarda.cmd" in h["hooks"][0]["command"] for ev in hooks["hooks"].values() for h in ev), "hooks.json chama o lançador")
 
 print(f"\n{'TUDO CERTO' if not falhas else str(len(falhas)) + ' FALHA(S)'}")
 sys.exit(1 if falhas else 0)

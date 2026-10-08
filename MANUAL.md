@@ -7,36 +7,31 @@ orçamento, público nem status, e só enxerga as contas da AUVP.
 
 ## O que você precisa
 
-- **Windows 10 ou 11** (ou Mac). **Não precisa instalar Python:** a skill traz o dela.
+- **Windows 10 ou 11** (ou Mac). **Não precisa instalar Python nem Git:** a skill traz o que usa.
 - **Claude Code** instalado (app desktop ou terminal).
-- **Git for Windows** (no Mac já vem). Ele baixa a skill do GitHub e dá ao Claude Code o terminal
-  que a trava de segurança usa.
-- **Convite para este repositório no GitHub**, aceito na sua conta (peça ao Diego).
+- **Acesso a este repositório no GitHub** (peça ao Diego) ou o arquivo ZIP enviado por ele.
 - **A senha mestra**, que o Diego envia em separado.
 
 ## 1. Instalar (uma vez)
 
-**Passo 1, Git (só no Windows).** Baixe em https://git-scm.com/download/win e instale com as opções
-que já vêm marcadas (é só ir clicando em Next). Depois, **feche e abra o Claude Code**.
-
-**Passo 2, login no GitHub.** Abra o programa **Git Bash** (veio com o Git) e rode:
-
-```
-git ls-remote https://github.com/DONO/auvp-criativos
-```
-
-Vai abrir o navegador para você entrar na sua conta do GitHub. Entre e autorize. Se aparecer uma
-lista de códigos no Git Bash, deu certo; pode fechar.
-
-**Passo 3, a skill.** No Claude Code, digite estes dois comandos, um de cada vez:
+1. **Baixe a skill.** No GitHub, logado, abra o repositório, clique no botão verde **Code** e em
+   **Download ZIP**. (Ou use o ZIP que o Diego mandou.)
+2. **Extraia** o ZIP numa pasta fixa, por exemplo `Documentos\auvp-criativos`. Não deixe em
+   Downloads, porque a skill passa a rodar dessa pasta.
+3. **No Claude Code**, digite estes dois comandos, um de cada vez, trocando o caminho pelo da sua pasta:
 
 ```
-/plugin marketplace add DONO/auvp-criativos
+/plugin marketplace add C:/Users/SEU-USUARIO/Documents/auvp-criativos
 /plugin install auvp-criativos@auvp-criativos
 ```
 
 No app desktop também dá pelo botão **+ > Plugins > Add plugin**. Depois de instalar, feche e abra
 a sessão do Claude Code.
+
+**Atualizar:** quando o Diego avisar de versão nova, baixe o ZIP de novo, substitua o conteúdo da
+mesma pasta e rode `/plugin marketplace update auvp-criativos`.
+
+*Quem tem Git pode instalar direto do GitHub:* `/plugin marketplace add DONO/auvp-criativos`.
 
 ## 2. Configurar (uma vez por computador)
 
@@ -98,8 +93,8 @@ AUVP. Se você pedir, o Claude vai dizer que não faz. Isso não é erro.
 | Mensagem | O que fazer |
 |---|---|
 | "a skill ainda não foi configurada" | diga "configurar" |
-| "não achei o Python para rodar a trava" | Windows: instale o Git for Windows (passo 1) e reabra o Claude Code. Mac: rode `xcode-select --install` no Terminal |
-| o `/plugin marketplace add` não acha o repositório | refaça o passo 2 (login no GitHub) e confira se aceitou o convite |
+| "não achei o Python para rodar a trava" | Windows: confira se a pasta `plugins/auvp-criativos/runtime/windows` veio inteira no ZIP. Mac: rode `xcode-select --install` no Terminal |
+| o `/plugin marketplace add` não acha a pasta | confira o caminho: é a pasta que tem o `README.md` e a pasta `plugins` dentro |
 | "falha de certificado na conexão" | a rede da empresa inspeciona HTTPS; peça ao TI para liberar graph.facebook.com e googleads.googleapis.com |
 | "senha mestra incorreta" | confira a senha com o Diego e diga "configurar" de novo |
 | "a Meta pediu uma pausa" | espere 5 minutos e peça para rodar de novo; o que já subiu não repete |
