@@ -1,0 +1,8 @@
+{
+  "name": "auvp-criativos",
+  "version": "1.0.0",
+  "description": "Sobe criativos nas contas de anúncio da AUVP (Meta e Google). Só sobe criativo, só nas contas da AUVP.",
+  "author": {
+    "name": "Diego Araujo"
+  }
+}

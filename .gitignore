@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.estado.json
+.DS_Store
+*.env
+credenciais*.json
+contas-permitidas*.json
+senha*.txt

@@ -1,0 +1,14 @@
+{
+  "name": "auvp-criativos",
+  "owner": {
+    "name": "Diego Araujo"
+  },
+  "plugins": [
+    {
+      "name": "auvp-criativos",
+      "source": "./plugins/auvp-criativos",
+      "description": "Sobe criativos nas contas de anúncio da AUVP (Meta e Google)."
+    }
+  ],
+  "description": "Skill da AUVP para subir criativos nas contas de anúncio."
+}
