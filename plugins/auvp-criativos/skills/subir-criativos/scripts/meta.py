@@ -362,6 +362,12 @@ def montar_criativo(molde: dict, nome: str, midia: dict) -> dict:
     return dados
 
 
+def rastreamento_do_molde(specs) -> list:
+    """Do molde, só o rastreamento de pixel e conversão. O de engajamento (post, página) aponta para o
+    post do molde; a Meta gera o certo sozinha para o post novo (conferido em 08/10/2026)."""
+    return [x for x in (specs or []) if not ({"post", "post.wall", "page"} & set(x))]
+
+
 def conferir_criativo(criativo_id: str, molde: dict) -> list:
     """Relê o criativo novo por inteiro e compara com o molde."""
     novo = ler(criativo_id, fields=CAMPOS_CRIATIVO)
@@ -431,8 +437,9 @@ def cmd_subir(args) -> None:
             if not e.get("anuncio"):
                 print("  criando anúncio pausado...", file=sys.stderr)
                 dados = {"name": nome, "adset_id": plano["conjunto"], "creative": {"creative_id": e["criativo"]}, "status": "PAUSED"}
-                if ad_molde.get("tracking_specs"):
-                    dados["tracking_specs"] = ad_molde["tracking_specs"]
+                rastreio = rastreamento_do_molde(ad_molde.get("tracking_specs"))
+                if rastreio:
+                    dados["tracking_specs"] = rastreio
                 if ad_molde.get("conversion_domain"):
                     dados["conversion_domain"] = ad_molde["conversion_domain"]
                 e["anuncio"] = escrever(f"{conta}/ads", dados)["id"]

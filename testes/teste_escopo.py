@@ -73,6 +73,8 @@ checar(funcao_que_chama(meta, "nucleo.validar_id") >= {"ler_molde", "carregar_pl
 checar('dados.get("status") != "PAUSED"' in texto, "anúncio só nasce PAUSED (checado dentro de escrever)")
 sem_filtros = texto.replace('["ACTIVE", "PAUSED"] if args.todas else ["ACTIVE"]', "").replace('["ACTIVE", "PAUSED"]', "")
 checar('"ACTIVE"' not in sem_filtros, "a palavra ACTIVE só aparece em filtro de leitura")
+checar('rastreamento_do_molde(ad_molde.get("tracking_specs"))' in texto and '{"post", "post.wall", "page"}' in texto,
+       "do molde só vai o rastreamento de pixel e conversão (o de engajamento apontaria para o post do molde)")
 for proibido in ("daily_budget", "lifetime_budget", "bid_amount", "targeting", "api_update", "api_delete", "copies"):
     checar(proibido not in texto, f"não cita {proibido}")
 
