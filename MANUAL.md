@@ -29,7 +29,14 @@ No app desktop também dá pelo botão **+ > Plugins > Add plugin**. Depois de i
 a sessão do Claude Code.
 
 **Atualizar:** quando o Diego avisar de versão nova, baixe o ZIP de novo, substitua o conteúdo da
-mesma pasta e rode `/plugin marketplace update auvp-criativos`.
+mesma pasta e rode, um de cada vez:
+
+```
+/plugin marketplace update auvp-criativos
+/plugin update auvp-criativos@auvp-criativos
+```
+
+Depois feche e abra a sessão do Claude Code.
 
 *Quem tem Git pode instalar direto do GitHub:* `/plugin marketplace add DONO/auvp-criativos`.
 
